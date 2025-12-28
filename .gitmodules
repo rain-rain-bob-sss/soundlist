@@ -5,3 +5,7 @@
 [submodule "css"]
 	path = static/css
 	url = https://github.com/sourcesounds/cstrike
+
+[submodule "gmod"]
+	path = static/gmod
+	url = https://github.com/sourcesounds/garrysmod

@@ -54,7 +54,7 @@
 			playingAudio.currentTime = 0;
 			playingAudio = undefined;
 		} else {
-			playingAudio = new Audio(`/hl2/sound/${sound}`);
+			playingAudio = new Audio(`${sound}`);
 			playingAudio.play();
 			playingAudio.addEventListener('ended', () => {
 				if (playingAudio) {
