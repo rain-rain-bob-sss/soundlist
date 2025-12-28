@@ -6,13 +6,13 @@ const config = {
 
 	kit: {
 		adapter: adapter({
-			pages: 'build',
-			assets: 'build',
-			fallback: '404.html'
+			pages: 'build',       
+			assets: 'build',      
+			fallback: '404.html'  
 		}),
 
 		paths: {
-			base: '/soundlist'
+			base: '/soundlist>'
 		}
 	}
 };
