@@ -1,3 +1,7 @@
 [submodule "hl2"]
 	path = static/hl2
 	url = https://github.com/sourcesounds/hl2
+
+[submodule "css"]
+	path = static/css
+	url = https://github.com/sourcesounds/cstrike
