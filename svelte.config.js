@@ -12,7 +12,7 @@ const config = {
 		}),
 
 		paths: {
-			base: '/fundamental_svelte'
+			base: '/soundlist'
 		}
 	}
 };
