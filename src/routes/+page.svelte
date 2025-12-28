@@ -1,9 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import Switch from '../Switch.svelte';
-
-	export let data: { sounds: string[] };
-
 	const possibleTags = {
 		Ambient: /^ambient\//,
 		Buttons: /^buttons\//,
@@ -26,6 +23,10 @@
 		Miscellaneous: /^(resource|beams)\//
 	};
 
+	type Tag = keyof typeof possibleTags;
+
+	export let data: { sounds: string[] };
+
 	let tags: string[] = [];
 
 	const toggleTag = (tag: string) => {
@@ -39,23 +40,41 @@
 	let search: string = '';
 
 	$: sounds = data.sounds.filter(
-		(sound) =>
-			sound.includes(search) &&
-			(tags.length === 0 ||
-				tags.some((tag) => possibleTags[tag as keyof typeof possibleTags].test(sound)))
+		(sound) => {
+			const soundPath = sound.split('/').slice(1).join('/');
+			return (
+				soundPath.includes(search) &&
+				(tags.length === 0 ||
+					tags.some((tag) => possibleTags[tag as Tag].test(soundPath)))
+			);
+		}
 	);
+	const generateTagsFromFolders = (sounds: string[]) => {
+		const folders = new Set<string>();
+		sounds.forEach((sound) => {
+			const folder = sound.split('/')[1];
+			if (folder) folders.add(folder);
+		});
+		return Array.from(folders).sort();
+	};
 
+	$: availableTags = generateTagsFromFolders(data.sounds);
 	let playingAudio: HTMLAudioElement | undefined;
 
-	const playSound = (sound: string) => {
+	const playSound = (sound: string, prefix : string) => {
 		playingAudio?.pause();
+
+		console.error(`Attempting to play audio from: ${sound}`); // Log the sound path
 
 		if (playingAudio?.src.includes(sound)) {
 			playingAudio.currentTime = 0;
 			playingAudio = undefined;
 		} else {
-			playingAudio = new Audio(`${sound}`);
-			playingAudio.play();
+			playingAudio = new Audio(`${prefix}/sound/${sound}`); // Adjusted to use the sound directly
+			playingAudio.play().catch(() => {
+				console.error(`Failed to play audio: ${sound}`);
+				playingAudio = undefined;
+			});
 			playingAudio.addEventListener('ended', () => {
 				if (playingAudio) {
 					playingAudio.currentTime = 0;
@@ -99,7 +118,7 @@
 			<input
 				class="search-input"
 				type="text"
-				placeholder="Search Half Life 2 sounds"
+				placeholder="Search sounds"
 				bind:value={search}
 			/>
 		</div>
@@ -113,23 +132,25 @@
 		</div>
 
 		<div class="sounds" class:minimal={mobile || minimalMode}>
-			{#each sounds as sound}
+			{#each sounds as sound (sound)}
+				{@const displayName = sound.replace(/^(css|hl2|gmod)\//, '')}
+				{@const prefix = sound.split('/')[0]}
 				{#if minimalMode}
-					<div
+					<button
 						class="sound-name"
 						class:active={playingAudio?.src.includes(sound)}
-						on:click={() => playSound(sound)}
+						on:click={() => playSound(displayName, prefix)}
 					>
-						{sound}
-					</div>
+						{displayName}
+					</button>
 				{:else}
 					<div class="sound-container">
 						<button
-							on:click={() => playSound(sound)}
+							on:click={() => playSound(displayName, prefix)}
 							class="play-button"
 							class:active={playingAudio?.src.includes(sound)}
-						/>
-						<div class="sound-name">{sound}</div>
+						></button>
+						<div class="sound-name">{displayName}</div>
 					</div>
 				{/if}
 			{/each}

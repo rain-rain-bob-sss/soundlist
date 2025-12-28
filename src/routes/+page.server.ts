@@ -2,12 +2,13 @@ import type { PageServerLoad } from './$types';
 
 export const load = (async ({ fetch }: { fetch: typeof global.fetch }) => {
 	const fetchPaths = async (url: string, prefix: string) => {
-		return fetch(url)
-			.then((res: Response) => res.text())
-			.then((text: string) => text.split('\n'))
-			.then((paths: string[]) => paths.map((path: string) => path.replace('sound\\', '').replaceAll('\\', '/').trim()))
-			.then((paths: string[]) => paths.filter((path: string) => path.length > 0))
-			.then((paths: string[]) => paths.map((path: string) => `${prefix}${path}`));
+		const res = await fetch(url);
+		const text = await res.text();
+		const paths = text.split('\n')
+			.map((path: string) => path.replace('sound\\', '').replaceAll('\\', '/').trim())
+			.filter((path: string) => path.length > 0)
+			.map((path: string) => `${prefix}${path}`);
+		return paths;
 	};
 
 	const [sounds, css, gmod] = await Promise.all([
@@ -16,9 +17,15 @@ export const load = (async ({ fetch }: { fetch: typeof global.fetch }) => {
 		fetchPaths('/gmod/path.txt', 'gmod/')
 	]);
 
+	const seenFilenames = new Set<string>();
+	const allSounds = [sounds, css, gmod].flat().filter(path => {
+		const filename = path.split('/').pop();
+		if (seenFilenames.has(filename!)) return false;
+		seenFilenames.add(filename!);
+		return true;
+	});
+
 	return {
-		sounds,
-		css,
-		gmod
+		sounds: allSounds
 	};
 }) satisfies PageServerLoad;
